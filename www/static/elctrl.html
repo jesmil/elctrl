@@ -1,0 +1,50 @@
+<!DOCTYPE html> 
+<html>
+    <head>
+        <title>elctrl</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="mobile-web-app-capable" content="yes">
+		<link rel="shortcut icon" sizes="60x60" href="/static/images/icon.png">
+		<link rel="apple-touch-icon" href="/static/images/icon.png">
+        <link rel="stylesheet"  href="/static/jquerymobile/jquery.mobile-1.4.0.min.css">
+        <script src="/static/knockout-3.0.0.js"></script>
+        <script src="/static/jquery-1.10.2.js"></script>
+        <script src="/static/jquerymobile/jquery.mobile-1.4.0.js"></script>
+    </head>
+    <body>
+		<div data-role="page">
+			<div data-role="header">elctrl</div>
+			<div role="main" class="ui-content">
+				<div class="ui-grid-a" data-bind="foreach: sensors">
+					<div class="ui-block-a" style="width:20%">
+						<div class="ui-bar ui-bar-a" style="height:40px; text-align : center;"><image src="/static/images/thermometer_half_full.png" ></image></div>
+					</div>
+					<div class="ui-block-b" style="width:80%">
+						<div class="ui-bar ui-bar-a" style="height:40px; text-align : left;" data-bind="text: value"> </div>
+					</div>
+					
+				</div>
+				<div class="ui-grid-a" data-bind="foreach: switches">
+					<div class="ui-block-a" style="width:20%">
+						<div class="ui-bar ui-bar-a" style="height:40px; text-align : center;"><image src="/static/images/lightbulb_on.png"></image></div>
+					</div>
+					<div class="ui-block-b" style="width:80%">
+						<div class="ui-bar ui-bar-a" style="height:40px; text-align : left;">
+							<form data-bind="elctrl: name">
+								<input type="checkbox" data-role="flipswitch" name="flip-checkbox" id="flip-checkbox" >
+								<span data-bind="text: name"></span>
+							</form>
+						</div>
+					</div>
+					
+				</div>
+
+			</div>
+			<div data-role="footer">footer</div>
+		</div>
+        
+		
+    </body>
+
+    <script src="/static/elctrl.js"></script>
+</html>
