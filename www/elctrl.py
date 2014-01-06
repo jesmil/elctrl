@@ -1,84 +1,123 @@
 #!/usr/bin/env python
 
+"""
+elctrl web
+"""
+
+
 from bottle import request
 import bottle
 import bottle.ext.sqlite
 import queries
 import subprocess
 
-app = bottle.default_app()
-app.config.load_config("/home/jesmil/documents/elctrl/www/elctrl.conf")
+APP = bottle.default_app()
+APP.config.load_config("/home/jesmil/documents/elctrl/www/elctrl.conf")
 
-plugin = bottle.ext.sqlite.Plugin(dbfile=app.config['db.file'])
-app.install(plugin)
+SQLITE_PLUG = bottle.ext.sqlite.Plugin(
+    dbfile=APP.config['db.file'],
+    keyword='database')
+
+APP.install(SQLITE_PLUG)
 
 
-@app.route("/elctrl")
+@APP.route("/elctrl")
 def elctrl():
-	return static("elctrl.html")
+    """
+        Start page
+    """
+    return static("elctrl.html")
 
-@app.route("/sensors/<id>", method="GET")
-def sensors_id_get(id, db):
+
+@APP.route("/sensors/<sensor_id>", method="GET")
+def sensors_id_get(sensor_id, database):
+    """
+        Return sensor by id
+    """
     sensors = {}
-    cursor = db.cursor()
-    cursor.execute(queries.all_values)
+    cursor = database.cursor()
+    cursor.execute(queries.SENSOR_VALUES_ALL)
     for row in cursor:
         name = row["Id"]
-        if not sensors.has_key(name):
+        if not name in sensors:
             sensors[row["Id"]] = {"Name": row["Name"], "Data": []}
-        sensors[row["Id"]]["Data"].append([row["Temperature"], row["Humidity"], row["Time"]])
+        sensors[row["Id"]]["Data"].append(
+            [row["Temperature"], row["Humidity"], row["Time"]])
     return sensors
 
-@app.route("/sensors", method="GET")
-def sensors_get(db):
+
+@APP.route("/sensors", method="GET")
+def sensors_get(database):
+    """
+        Return all sensors
+    """
     sensors = {}
-    cursor = db.cursor()
-    cursor.execute(queries.latest_values)
+    cursor = database.cursor()
+    cursor.execute(queries.SENSOR_VALUES_LATEST)
     for row in cursor:
         sensor_id = row["SensorId"]
-        if not sensors.has_key(sensor_id):
+        if not sensor_id in sensors:
             sensors[sensor_id] = {"Name": row["Name"], "Data": []}
-        sensors[sensor_id]["Data"].append({"Temperature": row["Temperature"], "Humidity": row["Humidity"], "Time": row["Time"]})
-    
+        sensors[sensor_id]["Data"].append({
+            "Temperature": row["Temperature"],
+            "Humidity": row["Humidity"],
+            "Time": row["Time"]})
+
     return sensors
 
 
-@app.route("/switches", method="GET")
-def switches_get(db):
+@APP.route("/switches", method="GET")
+def switches_get(database):
+    """
+        Return all power switches
+    """
     switches = {}
-    cursor = db.cursor()
-    cursor.execute(queries.switches)
+    cursor = database.cursor()
+    cursor.execute(queries.SWITCHES_ALL)
     for row in cursor:
         switch_id = row["Id"]
-        switches[switch_id] = {"Name": row["Name"], "State":row["State"]}
-        
+        switches[switch_id] = {"Name": row["Name"], "State": row["State"]}
+
     return switches
 
-@app.route("/switches/<id>/state", method="POST")
-def switches_state_post(id, db):
-	if not request.json.has_key("state"):
-		return {}
-	state = request.json["state"]
-	if app.config['environment.tdtool'] == "1":
-		tdtool(id, state)
-	cursor = db.cursor()
-	cursor.execute(queries.switches_set_state, (state, id))
-	db.commit()
-	
-	return {"Id": id, "State": state}
+
+@APP.route("/switches/<switch_id>/state", method="POST")
+def switches_state_post(switch_id, database):
+    """
+        Set state of power swith by id
+    """
+    if not "state" in request.json:
+        return {}
+    state = request.json["state"]
+    if APP.config['environment.tdtool'] == "1":
+        tdtool(switch_id, state)
+    cursor = database.cursor()
+    cursor.execute(queries.SWITCHES_SET_STATE, (state, switch_id))
+    database.commit()
+
+    return {"Id": switch_id, "State": state}
 
 
-
-@app.route("/static/:path#.+#", name="static")
+@APP.route("/static/:path#.+#", name="static")
 def static(path):
-	return bottle.static_file(path, root=app.config['host.wwwroot'] + "static")
+    """
+        Return static file
+    """
+    return bottle.static_file(path, root=APP.config['host.wwwroot'] + "static")
 
-def tdtool(id, state):
-	args = []
-	if state == 0:
-		args = "--off"
-	else:
-		args = "--on"
-	p = subprocess.Popen(["tdtool", args, id])
 
-app.run(host=app.config['host.ip'], port=app.config['host.port'], reloader=True)
+def tdtool(switch_id, state):
+    """
+        Call tdtool
+    """
+    args = ""
+    if state == 0:
+        args = "--off"
+    else:
+        args = "--on"
+    subprocess.Popen(["tdtool", args, switch_id])
+
+APP.run(
+    host=APP.config['host.ip'],
+    port=APP.config['host.port'],
+    reloader=True)
