@@ -13,6 +13,16 @@ def drop_and_create_sensors(cursor):
         cursor.execute(row)
 
 
+def add_indexes(cursor):
+    add_index = [
+        "create index if not exists 'sd_sensorid_index' on SensorData(SensorId)",
+    ]
+    
+    for row in add_index:
+        cursor.execute(row)
+    
+
+
 def insert_defaults_sensors(cursor):
     insert_defaults = [
         "insert into Sensor (Id, Name) values(8,'Garaget')",
@@ -60,7 +70,8 @@ if __name__ == "__main__":
     con = sqlite3.connect("elctrl.db")
     cursor = con.cursor()
     #sensors(cursor, con)
-    switches(cursor, con)
+    #switches(cursor, con)
+    add_indexes(cursor)
     cursor.execute("select * from Sensor")
     for row in cursor:
         print row

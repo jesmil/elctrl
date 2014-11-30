@@ -21,6 +21,7 @@ SQLITE_PLUG = bottle.ext.sqlite.Plugin(
 APP.install(SQLITE_PLUG)
 
 
+@APP.route("/")
 @APP.route("/elctrl")
 def elctrl():
     """

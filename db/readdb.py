@@ -1,5 +1,5 @@
 import sqlite3
-
+import time
 
 if __name__ == "__main__":
     con = sqlite3.connect("elctrl.db")
@@ -46,8 +46,12 @@ if __name__ == "__main__":
 		group by 
 			sd.SensorId
 		"""
-
+	
+    dt1 = time.time()
     cursor.execute(latest_values)
+    dt2 = time.time()
+    ts = dt2 - dt1
+    print ts
     print cursor.rowcount
     for row in cursor:
         print row
